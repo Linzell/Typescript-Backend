@@ -3,7 +3,7 @@ set -e
 
 # Wait for database to be ready
 echo "Waiting for database to be ready..."
-while ! nc -z db 5432; do
+while ! nc -z $DB_HOST $DB_PORT; do
     echo "Waiting for database..."
     sleep 1
 done

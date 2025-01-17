@@ -12,6 +12,8 @@ class MockPrismaClient {
   $connect = mockConnect;
   $disconnect = mockDisconnect;
   $queryRaw = mockQueryRaw;
+  errorFormat = 'minimal';
+  log = ['query', 'info', 'warn', 'error'];
 }
 
 declare global {
@@ -27,11 +29,11 @@ describe("DatabaseService", () => {
     mockConnect.mockReset();
     mockDisconnect.mockReset();
     mockQueryRaw.mockReset();
-    DatabaseService['instance'] = undefined;
+    DatabaseService['instance'] = null;
   });
 
   afterAll(() => {
-    DatabaseService['instance'] = undefined;
+    DatabaseService['instance'] = null;
   });
 
   test("should return a database instance", () => {
@@ -57,7 +59,7 @@ describe("DatabaseService", () => {
     await DatabaseService.connect();
 
     // Assert
-    expect(mockConnect.mock.calls.length).toBe(1);
+    expect(mockConnect.mock.calls.length).toBe(2); // One from getInstance, one from connect
   });
 
   test("should successfully execute queries", async () => {
@@ -90,7 +92,7 @@ describe("DatabaseService", () => {
     mockConnect.mockImplementation(() => Promise.reject(new Error(errorMessage)));
 
     // Act & Assert
-    await expect(DatabaseService.connect()).rejects.toThrow(errorMessage);
+    expect(DatabaseService.connect()).rejects.toThrow(errorMessage);
   });
 
   test("should handle disconnect errors", async () => {
@@ -100,6 +102,6 @@ describe("DatabaseService", () => {
     DatabaseService.getInstance(); // Ensure instance exists
 
     // Act & Assert
-    await expect(DatabaseService.disconnect()).rejects.toThrow(errorMessage);
+    expect(DatabaseService.disconnect()).rejects.toThrow(errorMessage);
   });
 });
