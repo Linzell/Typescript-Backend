@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 export class DatabaseService {
   private static instance: PrismaClient | null = null;
 
+  /**
+   * Get the database instance (creates one if it doesn't exist)
+   */
   static getInstance(): PrismaClient {
     if (!DatabaseService.instance) {
       DatabaseService.instance = new PrismaClient({
@@ -11,15 +14,12 @@ export class DatabaseService {
         log: ['query', 'info', 'warn', 'error'],
       });
     }
-
-    // Test the connection
-    DatabaseService.instance.$connect()
-      .then(() => console.log('PrismaClient connected successfully'))
-      .catch((error: Error) => console.error('PrismaClient connection failed:', error));
-
     return DatabaseService.instance;
   }
 
+  /**
+   * Connect to the database
+   */
   static async connect(): Promise<void> {
     try {
       const instance = this.getInstance();
@@ -31,6 +31,9 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Disconnect from the database and clear the instance
+   */
   static async disconnect(): Promise<void> {
     if (!this.instance) return;
 
@@ -44,3 +47,6 @@ export class DatabaseService {
     }
   }
 }
+
+// Export the methods for use in tests
+export const { getInstance, connect, disconnect } = DatabaseService;

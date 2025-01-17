@@ -5,6 +5,8 @@
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
     "test": "NODE_ENV=test bun test --preload ./test/setup.ts",
+    "test:watch": "NODE_ENV=test bun test --watch --preload ./test/setup.ts",
+    "test:coverage": "bun test --coverage",
     "docker:build": "docker-compose build",
     "docker:up": "docker compose up",
     "docker:down": "docker compose down",

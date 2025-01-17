@@ -1,17 +1,17 @@
 // src/infrastructure/auth/middleware.ts
-import { Elysia } from 'elysia';
+import type { Elysia } from 'elysia';
 import { JWTPayload } from './types/auth';
-
-import jwt from '@elysiajs/jwt';
+import { jwt } from '@elysiajs/jwt';
 import { config } from '@/config';
 
 export const createAuthMiddleware = (app: Elysia) => {
-  return app
+  const middleware = app
     .use(jwt({
       name: 'jwt',
       secret: config.JWT_ACCESS_SECRET,
       exp: '24h'
-    })).derive(async ({ jwt, cookie: { auth }, set }) => {
+    }))
+    .derive(async ({ jwt, cookie: { auth }, set }) => {
       if (!auth.value) {
         set.status = 401;
         return {
@@ -56,6 +56,8 @@ export const createAuthMiddleware = (app: Elysia) => {
         };
       }
     });
+
+  return middleware;
 };
 
 function isValidPayload(payload: any): payload is JWTPayload {

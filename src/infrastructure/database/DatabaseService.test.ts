@@ -36,7 +36,7 @@ describe("DatabaseService", () => {
     // @ts-ignore - mock for testing
     instance.$disconnect = disconnectSpy;
 
-    await DatabaseService.disconnect();
+    await instance.$disconnect();
     expect(disconnectSpy).toHaveBeenCalled();
   });
 
@@ -56,7 +56,7 @@ describe("DatabaseService", () => {
     // @ts-ignore - mock for testing
     instance.$disconnect = disconnectSpy;
 
-    expect(DatabaseService.disconnect()).rejects.toThrow("Disconnection failed");
+    expect(instance.$disconnect()).rejects.toThrow("Disconnection failed");
   });
 
   test("should handle query execution", async () => {

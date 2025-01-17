@@ -1,21 +1,29 @@
 // src/infrastructure/auth/middleware.test.ts
 import { describe, expect, test, beforeEach, mock } from "bun:test";
-import { Elysia } from "elysia";
-import { jwt } from "@elysiajs/jwt";
 import { createAuthMiddleware } from "./middleware";
 import { JWTPayload } from "./types/auth";
-import { config } from "@/config";
+import { MockElysia } from "./__mocks__/elysia.mock";
+
+// Mock modules
+mock.module('elysia', () => ({
+  Elysia: MockElysia
+}));
+
+mock.module('@elysiajs/jwt', () => ({
+  jwt: (_config: any) => (app: any) => {
+    app.jwt = {
+      sign: async () => 'mock.token',
+      verify: async () => ({ userId: '123', email: 'test@example.com', roles: ['user'] })
+    };
+    return app;
+  }
+}));
 
 describe("Auth Middleware", () => {
-  let app: Elysia;
+  let app: MockElysia;
 
   beforeEach(() => {
-    app = new Elysia()
-      .use(jwt({
-        name: 'jwt',
-        secret: config.JWT_ACCESS_SECRET,
-        exp: '24h'
-      }));
+    app = new MockElysia();
   });
 
   test("should allow access with valid token", async () => {
@@ -42,10 +50,7 @@ describe("Auth Middleware", () => {
       }
     };
 
-    const handler = middleware.derive;
-    handler(context as any);
-
-    const result = context as any;
+    const result = await middleware(context);
 
     expect(result.success).toBe(true);
     expect(result.user).toBeDefined();
@@ -70,10 +75,7 @@ describe("Auth Middleware", () => {
       }
     };
 
-    const handler = middleware.derive;
-    handler(context as any);
-
-    const result = context as any;
+    const result = await middleware(context);
 
     expect(result.success).toBe(false);
     expect(result.error.code).toBe('UNAUTHORIZED');
@@ -97,10 +99,7 @@ describe("Auth Middleware", () => {
       }
     };
 
-    const handler = middleware.derive;
-    handler(context as any);
-
-    const result = context as any;
+    const result = await middleware(context);
 
     expect(result.success).toBe(false);
     expect(result.error.code).toBe('AUTH_ERROR');
@@ -124,13 +123,39 @@ describe("Auth Middleware", () => {
       }
     };
 
-    const handler = middleware.derive;
-    handler(context as any);
-
-    const result = context as any;
+    const result = await middleware(context);
 
     expect(result.success).toBe(false);
     expect(result.error.code).toBe('AUTH_ERROR');
+    expect(context.set.status).toBe(401);
+  });
+
+  test("should validate payload structure", async () => {
+    const middleware = createAuthMiddleware(app);
+    const invalidPayload = {
+      // Missing required fields
+      someOtherField: "value"
+    };
+
+    const context = {
+      jwt: {
+        verify: mock(() => Promise.resolve(invalidPayload))
+      },
+      cookie: {
+        auth: {
+          value: "token.with.invalid.payload",
+          remove: () => { }
+        }
+      },
+      set: {
+        status: 200
+      }
+    };
+
+    const result = await middleware(context);
+
+    expect(result.success).toBe(false);
+    expect(result.error.code).toBe('INVALID_TOKEN');
     expect(context.set.status).toBe(401);
   });
 });
