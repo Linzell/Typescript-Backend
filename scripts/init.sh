@@ -9,11 +9,6 @@ while ! nc -z $DB_HOST $DB_PORT; do
 done
 echo "Database is ready!"
 
-# Print environment variables for debugging (remove in production)
-echo "DB_USER: $DB_USER"
-echo "DB_NAME: $DB_NAME"
-echo "DATABASE_URL: $DATABASE_URL"
-
 # Run database migrations
 echo "Running database migrations..."
 npx prisma migrate deploy
