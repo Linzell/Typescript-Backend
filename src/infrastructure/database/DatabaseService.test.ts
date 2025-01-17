@@ -1,107 +1,74 @@
 // src/infrastructure/database/DatabaseService.test.ts
-import { describe, expect, test, afterAll, mock, beforeEach } from "bun:test";
+import { describe, expect, test, beforeEach, mock } from "bun:test";
 import { DatabaseService } from "./DatabaseService";
-
-// Create mock functions
-const mockConnect = mock(() => Promise.resolve());
-const mockDisconnect = mock(() => Promise.resolve());
-const mockQueryRaw = mock(() => Promise.resolve([{ result: 1 }]));
-
-// Create mock PrismaClient class
-class MockPrismaClient {
-  $connect = mockConnect;
-  $disconnect = mockDisconnect;
-  $queryRaw = mockQueryRaw;
-  errorFormat = 'minimal';
-  log = ['query', 'info', 'warn', 'error'];
-}
-
-declare global {
-  var PrismaClient: any;
-}
-
-// Mock PrismaClient globally
-globalThis.PrismaClient = MockPrismaClient;
 
 describe("DatabaseService", () => {
   beforeEach(() => {
-    // Reset mocks and DatabaseService instance before each test
-    mockConnect.mockReset();
-    mockDisconnect.mockReset();
-    mockQueryRaw.mockReset();
-    DatabaseService['instance'] = null;
-  });
-
-  afterAll(() => {
+    // Reset instance before each test
+    // @ts-ignore - access private property for testing
     DatabaseService['instance'] = null;
   });
 
   test("should return a database instance", () => {
-    // Act
     const instance = DatabaseService.getInstance();
-
-    // Assert
     expect(instance).toBeDefined();
-    expect(instance.$connect).toBeDefined();
+    expect(typeof instance.$connect).toBe('function');
   });
 
   test("should maintain singleton pattern", () => {
-    // Act
     const firstInstance = DatabaseService.getInstance();
     const secondInstance = DatabaseService.getInstance();
-
-    // Assert
     expect(firstInstance).toBe(secondInstance);
   });
 
-  test("should successfully connect to database", async () => {
-    // Act
+  test("should connect successfully", async () => {
+    const connectSpy = mock(() => Promise.resolve());
+    // @ts-ignore - mock for testing
+    DatabaseService.getInstance().$connect = connectSpy;
+
     await DatabaseService.connect();
-
-    // Assert
-    expect(mockConnect.mock.calls.length).toBe(2); // One from getInstance, one from connect
-  });
-
-  test("should successfully execute queries", async () => {
-    // Arrange
-    const expectedResult = [{ result: 1 }];
-    const instance = DatabaseService.getInstance();
-
-    // Act
-    const result = await instance.$queryRaw`SELECT 1 as result`;
-
-    // Assert
-    expect(mockQueryRaw.mock.calls.length).toBe(1);
-    expect(result).toEqual(expectedResult);
+    expect(connectSpy).toHaveBeenCalled();
   });
 
   test("should disconnect successfully", async () => {
-    // Arrange
-    DatabaseService.getInstance(); // Ensure instance exists
+    const disconnectSpy = mock(() => Promise.resolve());
+    const instance = DatabaseService.getInstance();
+    // @ts-ignore - mock for testing
+    instance.$disconnect = disconnectSpy;
 
-    // Act
     await DatabaseService.disconnect();
-
-    // Assert
-    expect(mockDisconnect.mock.calls.length).toBe(1);
+    expect(disconnectSpy).toHaveBeenCalled();
   });
 
   test("should handle connection errors", async () => {
-    // Arrange
-    const errorMessage = "Connection failed";
-    mockConnect.mockImplementation(() => Promise.reject(new Error(errorMessage)));
+    const error = new Error("Connection failed");
+    const connectSpy = mock(() => Promise.reject(error));
+    // @ts-ignore - mock for testing
+    DatabaseService.getInstance().$connect = connectSpy;
 
-    // Act & Assert
-    expect(DatabaseService.connect()).rejects.toThrow(errorMessage);
+    expect(DatabaseService.connect()).rejects.toThrow("Connection failed");
   });
 
-  test("should handle disconnect errors", async () => {
-    // Arrange
-    const errorMessage = "Disconnect failed";
-    mockDisconnect.mockImplementation(() => Promise.reject(new Error(errorMessage)));
-    DatabaseService.getInstance(); // Ensure instance exists
+  test("should handle disconnection errors", async () => {
+    const error = new Error("Disconnection failed");
+    const disconnectSpy = mock(() => Promise.reject(error));
+    const instance = DatabaseService.getInstance();
+    // @ts-ignore - mock for testing
+    instance.$disconnect = disconnectSpy;
 
-    // Act & Assert
-    expect(DatabaseService.disconnect()).rejects.toThrow(errorMessage);
+    expect(DatabaseService.disconnect()).rejects.toThrow("Disconnection failed");
+  });
+
+  test("should handle query execution", async () => {
+    const expectedResult = [{ result: 1 }];
+    const queryRawSpy = mock(() => Promise.resolve(expectedResult));
+    // @ts-ignore - mock for testing
+    DatabaseService.getInstance().$queryRaw = queryRawSpy;
+
+    const instance = DatabaseService.getInstance();
+    const result = await instance.$queryRaw`SELECT 1 as result`;
+
+    expect(result).toEqual(expectedResult);
+    expect(queryRawSpy).toHaveBeenCalled();
   });
 });

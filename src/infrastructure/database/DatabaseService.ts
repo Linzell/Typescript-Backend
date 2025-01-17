@@ -6,22 +6,17 @@ export class DatabaseService {
 
   static getInstance(): PrismaClient {
     if (!DatabaseService.instance) {
-      try {
-        DatabaseService.instance = new PrismaClient({
-          errorFormat: 'minimal',
-          log: ['query', 'info', 'warn', 'error'],
-        });
-
-        // Test the connection
-        DatabaseService.instance.$connect()
-          .then(() => console.log('PrismaClient connected successfully'))
-          .catch((error: Error) => console.error('PrismaClient connection failed:', error));
-
-      } catch (error) {
-        console.error('Failed to initialize PrismaClient:', error);
-        throw error;
-      }
+      DatabaseService.instance = new PrismaClient({
+        errorFormat: 'minimal',
+        log: ['query', 'info', 'warn', 'error'],
+      });
     }
+
+    // Test the connection
+    DatabaseService.instance.$connect()
+      .then(() => console.log('PrismaClient connected successfully'))
+      .catch((error: Error) => console.error('PrismaClient connection failed:', error));
+
     return DatabaseService.instance;
   }
 
@@ -31,21 +26,21 @@ export class DatabaseService {
       await instance.$connect();
       console.log('Database connected successfully');
     } catch (error) {
-      console.error('Failed to connect to database:', error);
-      throw error;
+      const message = error instanceof Error ? error.message : 'Unknown database connection error';
+      throw new Error(message);
     }
   }
 
   static async disconnect(): Promise<void> {
-    if (!DatabaseService.instance) return;
+    if (!this.instance) return;
 
     try {
-      await DatabaseService.instance.$disconnect();
-      DatabaseService.instance = null;
+      await this.instance.$disconnect();
+      this.instance = null;
       console.log('Database disconnected successfully');
     } catch (error) {
-      console.error('Failed to disconnect from database:', error);
-      throw error;
+      const message = error instanceof Error ? error.message : 'Unknown database disconnection error';
+      throw new Error(message);
     }
   }
 }
