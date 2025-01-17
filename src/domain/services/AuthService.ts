@@ -1,5 +1,5 @@
 // src/domain/services/AuthService.ts
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 import { User } from '../entities/User';
 import { IUserRepository } from '../repositories/IUserRepository';

@@ -5,7 +5,7 @@ import { IUserRepository } from "@/domain/repositories/IUserRepository";
 import { User } from "@/domain/entities/User";
 import { AuthError } from "@/domain/errors/AuthError";
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 describe('AuthService', () => {
   let authService: AuthService;

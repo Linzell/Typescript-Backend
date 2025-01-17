@@ -7,6 +7,7 @@ import { cors } from '@elysiajs/cors';
 import { swagger } from '@elysiajs/swagger';
 import { opentelemetry } from "@elysiajs/opentelemetry";
 
+import { DatabaseService } from './infrastructure/database/DatabaseService';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 
@@ -104,11 +105,19 @@ app.group('/api/v1', app =>
 /**
  * Start the server
  */
-app.listen(config.PORT, () => {
-  console.log(`🦊 Server running at http://localhost:${config.PORT}`);
-  console.log(`📚 Documentation available at http://localhost:${config.PORT}/documentation`);
-  console.log(`🏥 Health check available at http://localhost:${config.PORT}/health`);
-  console.log(`🔐 CORS configured for ${config.FRONTEND_URL}`);
-  console.log(`🔒 Protected routes available at http://localhost:${config.PORT}/api/v1`);
-  console.log(`📊 OpenTelemetry configured`);
-});
+DatabaseService.connect()
+  .then(() => {
+    console.log('Database connected successfully');
+    app.listen(config.PORT, () => {
+      console.log(`🦊 Server running at http://localhost:${config.PORT}`);
+      console.log(`📚 Documentation available at http://localhost:${config.PORT}/documentation`);
+      console.log(`🏥 Health check available at http://localhost:${config.PORT}/health`);
+      console.log(`🔐 CORS configured for ${config.FRONTEND_URL}`);
+      console.log(`🔒 Protected routes available at http://localhost:${config.PORT}/api/v1`);
+      console.log(`📊 OpenTelemetry configured`);
+    });
+  })
+  .catch((error: Error) => {
+    console.error('Failed to connect to database:', error);
+    process.exit(1);
+  });
