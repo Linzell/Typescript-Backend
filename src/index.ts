@@ -6,12 +6,8 @@
 import { Elysia } from "elysia";
 import { cors } from '@elysiajs/cors';
 import { swagger } from '@elysiajs/swagger';
-import { opentelemetry } from "@elysiajs/opentelemetry";
 
 import { DatabaseService } from './infrastructure/database/DatabaseService';
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
-
 
 /**
  * Import route handlers
@@ -23,6 +19,7 @@ import authRoutes from "@/presentation/routes/authRoutes";
 // import { createAuthMiddleware } from "@/infrastructure/auth/middleware";
 
 import { config } from "@/config";
+import { tracing } from "./infrastructure/telemetry/telemetryConfig";
 
 /**
  * Main application instance
@@ -86,15 +83,7 @@ const app = new Elysia()
    * Configure OpenTelemetry for distributed tracing
    * @param {Object} opentelemetry - OpenTelemetry configuration object
    */
-  .use(
-    opentelemetry({
-      spanProcessors: [
-        new BatchSpanProcessor(
-          new OTLPTraceExporter()
-        )
-      ]
-    })
-  )
+  .use(tracing)
   /**
    * Configure public health check endpoint
    * @returns {Object} Health status object with 'ok' status
@@ -127,7 +116,7 @@ DatabaseService.connect()
       console.log(`🏥 Health check available at http://localhost:${config.PORT}/health`);
       console.log(`🔐 CORS configured for ${config.FRONTEND_URL}`);
       console.log(`🔒 Protected routes available at http://localhost:${config.PORT}/api/v1`);
-      console.log(`📊 OpenTelemetry configured`);
+      console.log(`📊 OpenTelemetry configured and jaeger tracing available at http://localhost:16686`);
     });
   })
   .catch((error: Error) => {

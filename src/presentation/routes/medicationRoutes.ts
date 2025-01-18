@@ -5,6 +5,7 @@
 
 import { Elysia, t } from 'elysia';
 import { jwt } from '@elysiajs/jwt';
+import { record } from '@elysiajs/opentelemetry';
 import { MedicationController } from '@/application/controllers/MedicationController';
 import { MedicationService } from '@/domain/services/MedicationService';
 import { FDAApiService } from '@/infrastructure/external/FDAApiService';
@@ -74,22 +75,24 @@ const medicationRoutes = (app: Elysia) => {
      * @returns Paginated list of medications
      */
     .get('/', async ({ query }) => {
-      const filters = MedicationFilterDTO.parse({
-        page: Number(query.page) || 1,
-        limit: Number(query.limit) || 9,
-        activeIngredient: query.activeIngredient,
-        route: query.route,
-        name: query.name
-      });
+      return record('getMedicationsList', async () => {
+        const filters = MedicationFilterDTO.parse({
+          page: Number(query.page) || 1,
+          limit: Number(query.limit) || 9,
+          activeIngredient: query.activeIngredient,
+          route: query.route,
+          name: query.name
+        });
 
-      return medicationController.getMedications(filters)
-        .then(result => new Response(
-          JSON.stringify(result),
-          {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        ));
+        return medicationController.getMedications(filters)
+          .then(result => new Response(
+            JSON.stringify(result),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            }
+          ));
+      });
     }, {
       detail: {
         tags: ['medications']
@@ -109,14 +112,16 @@ const medicationRoutes = (app: Elysia) => {
      * @returns Detailed medication information
      */
     .get('/:id', async ({ params: { id } }) => {
-      return medicationController.getMedicationById(id)
-        .then(result => new Response(
-          JSON.stringify(result),
-          {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        ));
+      return record('getMedicationById', async () => {
+        return medicationController.getMedicationById(id)
+          .then(result => new Response(
+            JSON.stringify(result),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            }
+          ));
+      });
     }, {
       detail: {
         tags: ['medications']

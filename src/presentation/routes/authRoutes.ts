@@ -10,6 +10,7 @@ import {
   LoginRequestDTO,
   RegisterRequestDTO
 } from '@/application/dtos/AuthDTO';
+import { record } from '@elysiajs/opentelemetry';
 
 import { config } from '@/config';
 
@@ -51,26 +52,28 @@ export const authRoutes = (app: Elysia) => {
      * @returns {Object} Login response
      */
     .post('/login', async ({ jwt, body, cookie: { auth } }) => {
-      const validatedBody = LoginRequestDTO.parse(body);
-      const result = await controller.login(validatedBody);
+      return record('login', async () => {
+        const validatedBody = LoginRequestDTO.parse(body);
+        const result = await controller.login(validatedBody);
 
-      const token = await jwt.sign({
-        userId: result.id,
-        email: result.email,
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+        const token = await jwt.sign({
+          userId: result.id,
+          email: result.email,
+          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+        });
+
+        auth.set({
+          value: token,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          maxAge: 24 * 60 * 60,
+          path: '/',
+          domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
+        });
+
+        return { message: 'Login successful' };
       });
-
-      auth.set({
-        value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        maxAge: 24 * 60 * 60,
-        path: '/',
-        domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
-      });
-
-      return { message: 'Login successful' };
     }, {
       detail: {
         tags: ['auth']
@@ -90,26 +93,28 @@ export const authRoutes = (app: Elysia) => {
      * @returns {Object} Registration response
      */
     .post('/register', async ({ jwt, body, cookie: { auth } }) => {
-      const validatedBody = RegisterRequestDTO.parse(body);
-      const result = await controller.register(validatedBody);
+      return record('register', async () => {
+        const validatedBody = RegisterRequestDTO.parse(body);
+        const result = await controller.register(validatedBody);
 
-      const token = await jwt.sign({
-        userId: result.id,
-        email: result.email,
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
+        const token = await jwt.sign({
+          userId: result.id,
+          email: result.email,
+          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
+        });
+
+        auth.set({
+          value: token,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          maxAge: 24 * 60 * 60,
+          path: '/',
+          domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
+        });
+
+        return { message: 'Registration successful' };
       });
-
-      auth.set({
-        value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        maxAge: 24 * 60 * 60,
-        path: '/',
-        domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
-      });
-
-      return { message: 'Registration successful' };
     }, {
       detail: {
         tags: ['auth']
@@ -128,8 +133,10 @@ export const authRoutes = (app: Elysia) => {
      * @returns {Object} Logout response
      */
     .post('/logout', ({ cookie: { auth } }) => {
-      auth.remove();
-      return { message: 'Logged out successfully' };
+      return record('logout', async () => {
+        auth.remove();
+        return { message: 'Logged out successfully' };
+      });
     }, {
       detail: {
         tags: ['auth']

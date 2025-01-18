@@ -15,6 +15,8 @@ import { PoolConfig } from 'pg';
 export interface Config {
   FRONTEND_URL: string;
   DATABASE: PoolConfig;
+  OTEL_EXPORTER_OTLP_ENDPOINT: string;
+  OTEL_SERVICE_NAME: string;
   FDA_API_KEY: string;
   JWT_ACCESS_SECRET: string;
   JWT_REFRESH_SECRET: string;
@@ -58,6 +60,8 @@ export const config: Config = {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
   },
+  OTEL_EXPORTER_OTLP_ENDPOINT: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://jaeger:4317',
+  OTEL_SERVICE_NAME: process.env.OTEL_SERVICE_NAME || 'medications-api',
   FDA_API_KEY: process.env.FDA_API_KEY || '',
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'your-secret-key',
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key',
