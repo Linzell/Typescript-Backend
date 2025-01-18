@@ -1,4 +1,8 @@
-// src/presentation/routes/medicationRoutes.ts
+/**
+ * @file Medication routes configuration file
+ * @description Defines API routes for medication-related endpoints with JWT authentication
+ */
+
 import { Elysia, t } from 'elysia';
 import { jwt } from '@elysiajs/jwt';
 import { MedicationController } from '@/application/controllers/MedicationController';
@@ -8,12 +12,20 @@ import { MedicationFilterDTO } from '@/application/dtos/MedicationDTO';
 
 import { config } from '@/config';
 
+/**
+ * Configure medication routes with authentication and error handling
+ * @param app - Elysia application instance
+ * @returns Configured Elysia app with medication routes
+ */
 const medicationRoutes = (app: Elysia) => {
   const fdaApiService = new FDAApiService(process.env.FDA_API_KEY!);
   const medicationService = new MedicationService(fdaApiService);
   const medicationController = new MedicationController(medicationService);
 
   return app.group('/medications', app => app
+    /**
+     * Global error handler for medication routes
+     */
     .onError(({ error }) => {
       // Only log errors in non-test environments
       if (process.env.NODE_ENV !== 'test') {
@@ -25,13 +37,18 @@ const medicationRoutes = (app: Elysia) => {
       });
     })
 
+    /**
+     * JWT authentication middleware configuration
+     */
     .use(jwt({
       name: 'jwt',
       secret: config.JWT_ACCESS_SECRET,
       exp: '24h'
     }))
 
-    // Add a beforeHandle hook to verify the token
+    /**
+     * Authentication verification middleware
+     */
     .onBeforeHandle(({ jwt, cookie: { auth }, set }) => {
       if (!auth?.value) {
         set.status = 401;
@@ -51,6 +68,11 @@ const medicationRoutes = (app: Elysia) => {
         });
     })
 
+    /**
+     * Get paginated list of medications with optional filters
+     * @param query - Query parameters for filtering and pagination
+     * @returns Paginated list of medications
+     */
     .get('/', async ({ query }) => {
       const filters = MedicationFilterDTO.parse({
         page: Number(query.page) || 1,
@@ -81,6 +103,11 @@ const medicationRoutes = (app: Elysia) => {
       })
     })
 
+    /**
+     * Get medication details by ID
+     * @param id - Medication identifier
+     * @returns Detailed medication information
+     */
     .get('/:id', async ({ params: { id } }) => {
       return medicationController.getMedicationById(id)
         .then(result => new Response(

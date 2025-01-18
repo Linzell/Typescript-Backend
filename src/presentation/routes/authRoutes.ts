@@ -1,4 +1,8 @@
-// src/presentation/routes/authRoutes.ts
+/**
+ * @file Authentication routes configuration
+ * @module authRoutes
+ */
+
 import { Elysia, t } from 'elysia';
 import { jwt } from '@elysiajs/jwt';
 import { AuthController } from '@/application/controllers/AuthController';
@@ -9,10 +13,18 @@ import {
 
 import { config } from '@/config';
 
+/**
+ * Configures and returns authentication routes
+ * @param {Elysia} app - The Elysia application instance
+ * @returns {Elysia} Configured auth routes
+ */
 export const authRoutes = (app: Elysia) => {
   const controller = new AuthController();
 
   return app.group('/auth', app => app
+    /**
+     * Global error handler for auth routes
+     */
     .onError(({ error }) => {
       console.error('Auth route error:', error);
       return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
@@ -21,12 +33,23 @@ export const authRoutes = (app: Elysia) => {
       });
     })
 
+    /**
+     * JWT middleware configuration
+     */
     .use(jwt({
       name: 'jwt',
       secret: config.JWT_ACCESS_SECRET,
       exp: '24h'
     }))
 
+    /**
+     * Login endpoint
+     * @param {Object} params - Request parameters
+     * @param {Object} params.jwt - JWT utilities
+     * @param {Object} params.body - Request body
+     * @param {Object} params.cookie - Cookie utilities
+     * @returns {Object} Login response
+     */
     .post('/login', async ({ jwt, body, cookie: { auth } }) => {
       const validatedBody = LoginRequestDTO.parse(body);
       const result = await controller.login(validatedBody);
@@ -58,6 +81,14 @@ export const authRoutes = (app: Elysia) => {
       })
     })
 
+    /**
+     * Registration endpoint
+     * @param {Object} params - Request parameters
+     * @param {Object} params.jwt - JWT utilities
+     * @param {Object} params.body - Request body
+     * @param {Object} params.cookie - Cookie utilities
+     * @returns {Object} Registration response
+     */
     .post('/register', async ({ jwt, body, cookie: { auth } }) => {
       const validatedBody = RegisterRequestDTO.parse(body);
       const result = await controller.register(validatedBody);
@@ -90,6 +121,12 @@ export const authRoutes = (app: Elysia) => {
       })
     })
 
+    /**
+     * Logout endpoint
+     * @param {Object} params - Request parameters
+     * @param {Object} params.cookie - Cookie utilities
+     * @returns {Object} Logout response
+     */
     .post('/logout', ({ cookie: { auth } }) => {
       auth.remove();
       return { message: 'Logged out successfully' };

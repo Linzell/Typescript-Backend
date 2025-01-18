@@ -3,7 +3,10 @@ import { z } from 'zod';
 import { Medication } from '@/domain/entities/Medication';
 import { IMedicationRepository, MedicationFilters } from '@/domain/repositories/IMedicationRepository';
 
-// Export the schema so we can mock it in tests
+/**
+ * Schema for validating FDA API responses
+ * @remarks Export the schema so we can mock it in tests
+ */
 export const fdaResponseSchema = z.object({
   meta: z.object({
     disclaimer: z.string(),
@@ -43,19 +46,21 @@ export const fdaResponseSchema = z.object({
 /**
  * Service for interacting with the FDA API
  * @implements {IMedicationRepository}
+ * @class
  */
 export class FDAApiService implements IMedicationRepository {
   /**
    * Creates an instance of FDAApiService
+   * @constructor
    * @param {string} apiKey - API key for FDA API authentication
    */
   constructor(private readonly apiKey: string) { }
 
   /**
    * Translates filter parameters to FDA API search syntax
+   * @private
    * @param {MedicationFilters} filters - Application filters
    * @returns {string} FDA API compatible search query
-   * @private
    */
   private translateToFDAQuery(filters: MedicationFilters): string {
     const searchTerms: string[] = [];
@@ -85,9 +90,10 @@ export class FDAApiService implements IMedicationRepository {
 
   /**
    * Sanitizes search terms for FDA API syntax
-   * @param {string} term - Raw search term
-   * @returns {string} Sanitized term
    * @private
+   * @param {string} term - Raw search term
+   * @param {boolean} [isProductId=false] - Whether the term is a product ID
+   * @returns {string} Sanitized term
    */
   private sanitizeSearchTerm(term: string, isProductId: boolean = false): string {
     if (isProductId) {
@@ -110,11 +116,11 @@ export class FDAApiService implements IMedicationRepository {
 
   /**
    * Creates FDA API URL with proper parameters
+   * @private
    * @param {string} searchQuery - Translated search query
    * @param {number} limit - Results per page
    * @param {number} skip - Number of results to skip
    * @returns {string} Complete FDA API URL
-   * @private
    */
   private createFDAApiUrl(searchQuery: string, limit: number, skip: number): string {
     // Base URL
@@ -133,6 +139,7 @@ export class FDAApiService implements IMedicationRepository {
 
   /**
    * Finds medications based on provided filters
+   * @async
    * @param {MedicationFilters} filters - Filters for medication search
    * @returns {Promise<{medications: Medication[], total: number}>} Medications and total count
    * @throws {Error} When FDA API request fails
@@ -165,6 +172,7 @@ export class FDAApiService implements IMedicationRepository {
 
   /**
    * Finds a medication by its ID
+   * @async
    * @param {string} id - Medication ID to search for
    * @returns {Promise<Medication | null>} Found medication or null if not found
    * @throws {Error} When FDA API request fails
@@ -198,9 +206,9 @@ export class FDAApiService implements IMedicationRepository {
 
   /**
    * Maps FDA API response data to Medication domain model
+   * @private
    * @param {any} data - Raw FDA API response data
    * @returns {Medication} Mapped medication entity
-   * @private
    */
   private mapToMedication(data: any): Medication {
     return new Medication(

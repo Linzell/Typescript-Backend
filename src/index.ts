@@ -1,5 +1,6 @@
 /**
  * @fileoverview Main application entry point for the API
+ * @module app
  */
 
 import { Elysia } from "elysia";
@@ -12,7 +13,11 @@ import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 
 
-// Import routes
+/**
+ * Import route handlers
+ * @see {@link medicationRoutes}
+ * @see {@link authRoutes}
+ */
 import medicationRoutes from "@/presentation/routes/medicationRoutes";
 import authRoutes from "@/presentation/routes/authRoutes";
 // import { createAuthMiddleware } from "@/infrastructure/auth/middleware";
@@ -21,10 +26,12 @@ import { config } from "@/config";
 
 /**
  * Main application instance
+ * @type {Elysia}
  */
 const app = new Elysia()
   /**
    * Configure Swagger documentation
+   * @param {Object} swagger - Swagger configuration object
    */
   .use(swagger({
     documentation: {
@@ -67,6 +74,7 @@ const app = new Elysia()
   }))
   /**
    * Configure CORS settings
+   * @param {Object} cors - CORS configuration object
    */
   .use(cors({
     origin: [config.FRONTEND_URL],
@@ -75,8 +83,9 @@ const app = new Elysia()
     credentials: true
   }))
   /**
-    * Configure opentelemetry
-    */
+   * Configure OpenTelemetry for distributed tracing
+   * @param {Object} opentelemetry - OpenTelemetry configuration object
+   */
   .use(
     opentelemetry({
       spanProcessors: [
@@ -88,13 +97,15 @@ const app = new Elysia()
   )
   /**
    * Configure public health check endpoint
-   * @returns {Object} Health status object
+   * @returns {Object} Health status object with 'ok' status
    */
   .get('/health', () => ({ status: 'ok' }))
   .use(authRoutes);
 
 /**
- * Configure protected API routes
+ * Configure protected API routes under /api/v1 prefix
+ * @param {string} prefix - API route prefix
+ * @param {Function} callback - Route configuration callback
  */
 app.group('/api/v1', app =>
   app
@@ -103,7 +114,9 @@ app.group('/api/v1', app =>
 );
 
 /**
- * Start the server
+ * Initialize database connection and start the server
+ * @async
+ * @throws {Error} Database connection error
  */
 DatabaseService.connect()
   .then(() => {

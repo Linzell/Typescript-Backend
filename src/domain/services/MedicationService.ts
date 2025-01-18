@@ -3,15 +3,21 @@ import { Medication } from '@/domain/entities/Medication';
 import { IMedicationRepository, MedicationFilters } from '@/domain/repositories/IMedicationRepository';
 
 /**
- * Service responsible for medication-related business logic
+ * Service responsible for handling medication-related business logic and operations
+ * @class MedicationService
  */
 export class MedicationService {
+  /**
+   * Creates an instance of MedicationService
+   * @param {IMedicationRepository} medicationRepository - Repository for medication data access
+   */
   constructor(private readonly medicationRepository: IMedicationRepository) { }
 
   /**
    * Retrieves a paginated list of medications with optional filters
-   * @param filters - Object containing pagination and filter parameters
-   * @returns Promise with medications and total count
+   * @param {MedicationFilters} filters - Object containing pagination and filter parameters
+   * @returns {Promise<{medications: Medication[], total: number, currentPage: number, totalPages: number, hasMore: boolean}>} Promise with medications data and pagination info
+   * @throws {MedicationError} When medications fetch fails
    */
   async getMedications(filters: MedicationFilters): Promise<{
     medications: Medication[];
@@ -43,8 +49,9 @@ export class MedicationService {
 
   /**
    * Retrieves a single medication by its ID
-   * @param id - Medication ID
-   * @returns Promise with the medication or null if not found
+   * @param {string} id - Medication ID to lookup
+   * @returns {Promise<Medication | null>} Promise with the medication if found, null otherwise
+   * @throws {MedicationError} When medication fetch fails
    */
   async getMedicationById(id: string): Promise<Medication | null> {
     return this.medicationRepository.findById(id)
@@ -59,10 +66,11 @@ export class MedicationService {
 
   /**
    * Searches medications by active ingredient
-   * @param ingredient - Active ingredient name
-   * @param page - Page number
-   * @param limit - Items per page
-   * @returns Promise with filtered medications and total count
+   * @param {string} ingredient - Active ingredient name to search for
+   * @param {number} [page=1] - Page number for pagination
+   * @param {number} [limit=10] - Number of items per page
+   * @returns {Promise<{medications: Medication[], total: number, currentPage: number, totalPages: number, hasMore: boolean}>}
+   * Promise with filtered medications data and pagination info
    */
   searchByActiveIngredient(ingredient: string, page: number = 1, limit: number = 10) {
     return this.getMedications({
@@ -74,10 +82,11 @@ export class MedicationService {
 
   /**
    * Filters medications by administration route
-   * @param route - Administration route
-   * @param page - Page number
-   * @param limit - Items per page
-   * @returns Promise with filtered medications and total count
+   * @param {string} route - Administration route to filter by
+   * @param {number} [page=1] - Page number for pagination
+   * @param {number} [limit=10] - Number of items per page
+   * @returns {Promise<{medications: Medication[], total: number, currentPage: number, totalPages: number, hasMore: boolean}>}
+   * Promise with filtered medications data and pagination info
    */
   filterByRoute(route: string, page: number = 1, limit: number = 10) {
     return this.getMedications({
@@ -89,11 +98,12 @@ export class MedicationService {
 
   /**
    * Searches medications by both active ingredient and route
-   * @param ingredient - Active ingredient name
-   * @param route - Administration route
-   * @param page - Page number
-   * @param limit - Items per page
-   * @returns Promise with filtered medications and total count
+   * @param {string} ingredient - Active ingredient name to search for
+   * @param {string} route - Administration route to filter by
+   * @param {number} [page=1] - Page number for pagination
+   * @param {number} [limit=10] - Number of items per page
+   * @returns {Promise<{medications: Medication[], total: number, currentPage: number, totalPages: number, hasMore: boolean}>}
+   * Promise with filtered medications data and pagination info
    */
   searchByIngredientAndRoute(
     ingredient: string,
@@ -108,12 +118,14 @@ export class MedicationService {
       limit
     });
   }
+
   /**
    * Filters medications by name (brand name or generic name)
-   * @param name - Name to search for
-   * @param page - Page number
-   * @param limit - Items per page
-   * @returns Promise with filtered medications and total count
+   * @param {string} name - Name to search for
+   * @param {number} [page=1] - Page number for pagination
+   * @param {number} [limit=10] - Number of items per page
+   * @returns {Promise<{medications: Medication[], total: number, currentPage: number, totalPages: number, hasMore: boolean}>}
+   * Promise with filtered medications data and pagination info
    */
   filterByName(name: string, page: number = 1, limit: number = 10) {
     return this.getMedications({
@@ -124,7 +136,18 @@ export class MedicationService {
   }
 }
 
+/**
+ * Custom error class for medication-related errors
+ * @class MedicationError
+ * @extends Error
+ */
 export class MedicationError extends Error {
+  /**
+   * Creates an instance of MedicationError
+   * @param {string} message - Error message
+   * @param {string} code - Error code
+   * @param {number} [statusCode=500] - HTTP status code
+   */
   constructor(
     message: string,
     public readonly code: string,

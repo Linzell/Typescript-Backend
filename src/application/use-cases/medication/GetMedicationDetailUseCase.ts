@@ -2,14 +2,21 @@
 import { MedicationService } from '@/domain/services/MedicationService';
 import { MedicationResponse } from '@/application/dtos/MedicationDTO';
 
+/**
+ * Use case for retrieving detailed information about a specific medication
+ */
 export class GetMedicationDetailUseCase {
+  /**
+   * Creates a new instance of GetMedicationDetailUseCase
+   * @param medicationService - The medication service dependency
+   */
   constructor(private readonly medicationService: MedicationService) { }
 
   /**
-   * Execute the get medication detail use case
-   * @param id Medication ID
-   * @returns Medication details
-   * @throws Error if medication is not found or fetching fails
+   * Executes the get medication detail use case
+   * @param id - Unique identifier of the medication to retrieve
+   * @returns Promise that resolves to medication details in DTO format
+   * @throws Error if medication is not found or if the fetch operation fails
    */
   async execute(id: string): Promise<MedicationResponse> {
     return this.medicationService.getMedicationById(id)

@@ -4,6 +4,11 @@ import { JWTPayload } from './types/auth';
 import { jwt } from '@elysiajs/jwt';
 import { config } from '@/config';
 
+/**
+ * Creates an authentication middleware for Elysia application
+ * @param app - The Elysia application instance
+ * @returns Authentication middleware with JWT verification
+ */
 export const createAuthMiddleware = (app: Elysia) => {
   const middleware = app
     .use(jwt({
@@ -60,6 +65,11 @@ export const createAuthMiddleware = (app: Elysia) => {
   return middleware;
 };
 
+/**
+ * Type guard to validate JWT payload structure
+ * @param payload - The payload to validate
+ * @returns Boolean indicating if the payload matches JWTPayload structure
+ */
 function isValidPayload(payload: any): payload is JWTPayload {
   return (
     typeof payload === 'object' &&

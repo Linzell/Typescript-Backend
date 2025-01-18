@@ -1,4 +1,9 @@
 // src/domain/repositories/IMedicationRepository.ts
+/**
+ * @fileoverview Repository interface and types for medication domain
+ * @module domain/repositories/IMedicationRepository
+ */
+
 import { Medication } from '@/domain/entities/Medication';
 
 /**
@@ -25,6 +30,7 @@ export interface MedicationFilters {
 export interface IMedicationRepository {
   /**
    * Fetches paginated medications with optional filters
+   * @async
    * @param {MedicationFilters} filters - Filtering and pagination parameters
    * @returns {Promise<{medications: Medication[], total: number}>} Promise containing medications array and total count
    * @throws {Error} If the repository operation fails
@@ -36,6 +42,7 @@ export interface IMedicationRepository {
 
   /**
    * Fetches a single medication by its ID
+   * @async
    * @param {string} id - Medication ID
    * @returns {Promise<Medication | null>} Promise containing the medication or null if not found
    * @throws {Error} If the repository operation fails

@@ -2,20 +2,9 @@
 import { z } from 'zod';
 
 /**
- * Schema for a medication object
- * @typedef {Object} MedicationSchema
- * @property {string} id - Unique identifier for the medication
- * @property {string} name - Brand name of the medication
- * @property {string} genericName - Generic/scientific name of the medication
- * @property {string} manufacturer - Name of the manufacturing company
- * @property {Array<Object>} activeIngredients - List of active ingredients
- * @property {string} activeIngredients.name - Name of the active ingredient
- * @property {string} activeIngredients.strength - Strength/dosage of the ingredient
- * @property {Array<string>} route - Administration routes for the medication
- * @property {Array<Object>} packaging - Available packaging options
- * @property {string} packaging.description - Description of the package
- * @property {string} packaging.marketingStartDate - Date when marketing began
- * @property {boolean} packaging.isSample - Whether this is a sample package
+ * Zod schema defining the structure and validation rules for a medication object
+ * @description Validates and defines the shape of medication data including identifying information,
+ * active ingredients, routes of administration and packaging details
  */
 export const MedicationSchema = z.object({
   id: z.string(),
@@ -35,13 +24,9 @@ export const MedicationSchema = z.object({
 });
 
 /**
- * Schema for paginated medication list response
- * @typedef {Object} MedicationListResponseSchema
- * @property {Array<MedicationSchema>} medications - List of medications
- * @property {number} total - Total number of medications available
- * @property {number} currentPage - Current page number
- * @property {number} totalPages - Total number of pages
- * @property {boolean} hasMore - Whether there are more pages available
+ * Zod schema for paginated medication list response data
+ * @description Defines the structure of paginated API responses containing medication data,
+ * including metadata about pagination state
  */
 export const MedicationListResponseSchema = z.object({
   medications: z.array(MedicationSchema),
@@ -51,5 +36,14 @@ export const MedicationListResponseSchema = z.object({
   hasMore: z.boolean()
 });
 
+/**
+ * Type representing a single medication record
+ * @description Inferred TypeScript type from MedicationSchema
+ */
 export type Medication = z.infer<typeof MedicationSchema>;
+
+/**
+ * Type representing a paginated list of medications
+ * @description Inferred TypeScript type from MedicationListResponseSchema
+ */
 export type MedicationListResponse = z.infer<typeof MedicationListResponseSchema>;

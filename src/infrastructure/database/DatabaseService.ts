@@ -1,11 +1,16 @@
-// src/infrastructure/database/DatabaseService.ts
+/**
+ * @class DatabaseService
+ * @description Service class for managing database connections using Prisma
+ */
 import { PrismaClient } from '@prisma/client';
 
 export class DatabaseService {
+  /** @private Singleton instance of PrismaClient */
   private static instance: PrismaClient | null = null;
 
   /**
    * Get the database instance (creates one if it doesn't exist)
+   * @returns {PrismaClient} The Prisma client instance
    */
   static getInstance(): PrismaClient {
     if (!DatabaseService.instance) {
@@ -19,6 +24,8 @@ export class DatabaseService {
 
   /**
    * Connect to the database
+   * @throws {Error} If connection fails
+   * @returns {Promise<void>}
    */
   static async connect(): Promise<void> {
     try {
@@ -33,6 +40,8 @@ export class DatabaseService {
 
   /**
    * Disconnect from the database and clear the instance
+   * @throws {Error} If disconnection fails
+   * @returns {Promise<void>}
    */
   static async disconnect(): Promise<void> {
     if (!this.instance) return;
@@ -48,5 +57,7 @@ export class DatabaseService {
   }
 }
 
-// Export the methods for use in tests
+/**
+ * Export database methods for testing purposes
+ */
 export const { getInstance, connect, disconnect } = DatabaseService;

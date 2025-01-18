@@ -8,11 +8,22 @@ import {
 } from '../dtos/MedicationDTO';
 import { Medication } from '@/domain/entities/Medication';
 
+/**
+ * Controller class for handling medication-related operations
+ * @class MedicationController
+ */
 export class MedicationController {
+  /**
+   * Creates an instance of MedicationController
+   * @param {MedicationService} medicationService - The medication service instance
+   */
   constructor(private readonly medicationService: MedicationService) { }
 
   /**
    * Maps a Medication entity to MedicationResponse DTO
+   * @param {Medication} medication - The medication entity to map
+   * @returns {MedicationResponse} The mapped medication response
+   * @private
    */
   private mapMedicationToResponse(medication: Medication): MedicationResponse {
     return {
@@ -28,6 +39,8 @@ export class MedicationController {
 
   /**
    * Retrieves a paginated list of medications
+   * @param {MedicationFilter} filters - The filters to apply to the medication list
+   * @returns {Promise<PaginatedMedicationResponse | { error: string }>} The paginated medication response or error
    */
   async getMedications(filters: MedicationFilter): Promise<PaginatedMedicationResponse | { error: string }> {
     const validatedFilters = MedicationFilterDTO.parse(filters);
@@ -60,6 +73,8 @@ export class MedicationController {
 
   /**
    * Retrieves a single medication by ID
+   * @param {string} id - The ID of the medication to retrieve
+   * @returns {Promise<MedicationResponse | { error: string }>} The medication response or error
    */
   async getMedicationById(id: string): Promise<MedicationResponse | { error: string }> {
     return this.medicationService.getMedicationById(id)
@@ -89,9 +104,10 @@ export class MedicationController {
 
   /**
    * Searches medications by active ingredient
-   * @param ingredient - Active ingredient name
-   * @param page - Page number
-   * @param limit - Items per page
+   * @param {string} ingredient - Active ingredient name
+   * @param {number} [page=1] - Page number
+   * @param {number} [limit=10] - Items per page
+   * @returns {Promise<PaginatedMedicationResponse | { error: string }>} The paginated medication response or error
    */
   async searchByActiveIngredient(
     ingredient: string,
@@ -109,9 +125,10 @@ export class MedicationController {
 
   /**
    * Filters medications by administration route
-   * @param route - Administration route
-   * @param page - Page number
-   * @param limit - Items per page
+   * @param {string} route - Administration route
+   * @param {number} [page=1] - Page number
+   * @param {number} [limit=10] - Items per page
+   * @returns {Promise<PaginatedMedicationResponse | { error: string }>} The paginated medication response or error
    */
   async filterByRoute(
     route: string,
@@ -129,9 +146,10 @@ export class MedicationController {
 
   /**
    * Filters medications by name (brand name or generic name)
-   * @param name - Name to search for
-   * @param page - Page number
-   * @param limit - Items per page
+   * @param {string} name - Name to search for
+   * @param {number} [page=1] - Page number
+   * @param {number} [limit=10] - Items per page
+   * @returns {Promise<PaginatedMedicationResponse | { error: string }>} The paginated medication response or error
    */
   async filterByName(
     name: string,

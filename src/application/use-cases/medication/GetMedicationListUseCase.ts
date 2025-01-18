@@ -1,15 +1,26 @@
-// src/application/use-cases/medication/GetMedicationListUseCase.ts
+/**
+ * @fileoverview Use case for retrieving paginated list of medications with optional filtering
+ * @module application/use-cases/medication/GetMedicationListUseCase
+ */
+
 import { MedicationService } from '@/domain/services/MedicationService';
 import { MedicationFilter, PaginatedMedicationResponse, MedicationResponse } from '@/application/dtos/MedicationDTO';
 import { Medication } from '@/domain/entities/Medication';
 
+/**
+ * Use case class for getting paginated medication list with filtering capabilities
+ */
 export class GetMedicationListUseCase {
+  /**
+   * Creates a new GetMedicationListUseCase instance
+   * @param medicationService - The medication service dependency
+   */
   constructor(private readonly medicationService: MedicationService) { }
 
   /**
    * Maps a Medication entity to MedicationResponse DTO
-   * @param medication Medication entity
-   * @returns MedicationResponse DTO
+   * @param medication - Medication entity to be mapped
+   * @returns MedicationResponse DTO with mapped medication data
    */
   private mapMedicationToResponse(medication: Medication): MedicationResponse {
     return {
@@ -25,8 +36,13 @@ export class GetMedicationListUseCase {
 
   /**
    * Maps paginated result to response format
-   * @param result Service result
-   * @returns Formatted response
+   * @param result - Raw paginated result from service
+   * @param result.medications - Array of medication entities
+   * @param result.total - Total number of medications
+   * @param result.currentPage - Current page number
+   * @param result.totalPages - Total number of pages
+   * @param result.hasMore - Whether there are more pages
+   * @returns Formatted paginated response
    */
   private formatResponse(result: {
     medications: Medication[];
@@ -46,9 +62,13 @@ export class GetMedicationListUseCase {
 
   /**
    * Execute the get medication list use case
-   * @param filters Medication filters and pagination options
-   * @returns Paginated list of medications
-   * @throws Error if fetching fails
+   * @param filters - Filter and pagination options
+   * @param filters.activeIngredient - Active ingredient to filter by
+   * @param filters.route - Administration route to filter by
+   * @param filters.page - Page number for pagination
+   * @param filters.limit - Number of items per page
+   * @returns Promise resolving to paginated medication list
+   * @throws Error if medication fetching fails
    */
   async execute(filters: MedicationFilter): Promise<PaginatedMedicationResponse> {
 
