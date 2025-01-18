@@ -31,14 +31,27 @@ const medicationRoutes = (app: Elysia) => {
       exp: '24h'
     }))
 
-    .get('/', async ({ jwt, query, set, cookie: { auth } }) => {
-      const profile = await jwt.verify(auth.value)
-
-      if (!profile) {
-        set.status = 401
-        return 'Unauthorized'
+    // Add a beforeHandle hook to verify the token
+    .onBeforeHandle(({ jwt, cookie: { auth }, set }) => {
+      if (!auth?.value) {
+        set.status = 401;
+        return 'No authentication token provided';
       }
 
+      return jwt.verify(auth.value)
+        .then(profile => {
+          if (!profile) {
+            set.status = 401;
+            return 'Invalid authentication token';
+          }
+        })
+        .catch(() => {
+          set.status = 401;
+          return 'Invalid authentication token';
+        });
+    })
+
+    .get('/', async ({ query }) => {
       const filters = MedicationFilterDTO.parse({
         page: Number(query.page) || 1,
         limit: Number(query.limit) || 10,
@@ -66,14 +79,7 @@ const medicationRoutes = (app: Elysia) => {
       })
     })
 
-    .get('/:id', async ({ jwt, params: { id }, set, cookie: { auth } }) => {
-      const profile = await jwt.verify(auth.value)
-
-      if (!profile) {
-        set.status = 401
-        return 'Unauthorized'
-      }
-
+    .get('/:id', async ({ params: { id } }) => {
       return medicationController.getMedicationById(id)
         .then(result => new Response(
           JSON.stringify(result),

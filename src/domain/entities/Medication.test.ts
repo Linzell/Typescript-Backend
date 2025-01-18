@@ -12,8 +12,7 @@ describe("Medication", () => {
 
   const mockPackaging: Packaging = {
     description: "30 tablets in a bottle",
-    marketing_start_date: "2023-01-01",
-    sample: false
+    marketingStartDate: "2023-01-01"
   };
 
   const mockMedicationData = {
@@ -65,13 +64,11 @@ describe("Medication", () => {
     it("should properly structure packaging data", () => {
       const packaging: Packaging = {
         description: "Blister pack of 10 tablets",
-        marketing_start_date: "2023-06-15",
-        sample: true
+        marketingStartDate: "2023-06-15"
       };
 
       expect(packaging.description).toBe("Blister pack of 10 tablets");
-      expect(packaging.marketing_start_date).toBe("2023-06-15");
-      expect(packaging.sample).toBe(true);
+      expect(packaging.marketingStartDate).toBe("2023-06-15");
     });
   });
 
@@ -125,16 +122,15 @@ describe("Medication", () => {
         [mockActiveIngredient],
         ["ORAL"],
         [
-          { description: "30 tablets bottle", marketing_start_date: "2023-01-01", sample: false },
-          { description: "90 tablets bottle", marketing_start_date: "2023-01-01", sample: false },
-          { description: "5 tablets sample", marketing_start_date: "2023-01-01", sample: true }
+          { description: "30 tablets bottle", marketingStartDate: "2023-01-01" },
+          { description: "90 tablets bottle", marketingStartDate: "2023-01-01" },
+          { description: "5 tablets sample", marketingStartDate: "2023-01-01" }
         ]
       );
 
       expect(multiPackagingMed.packaging).toHaveLength(3);
       expect(multiPackagingMed.packaging[0].description).toBe("30 tablets bottle");
       expect(multiPackagingMed.packaging[1].description).toBe("90 tablets bottle");
-      expect(multiPackagingMed.packaging[2].sample).toBe(true);
     });
   });
 });

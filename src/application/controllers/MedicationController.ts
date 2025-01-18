@@ -16,13 +16,14 @@ export class MedicationController {
    */
   private mapMedicationToResponse(medication: Medication): MedicationResponse {
     return {
+
       id: medication.id,
-      brandName: medication.brandName,
+      brandName: medication.brandName || '',
       genericName: medication.genericName,
       labelerName: medication.labelerName,
       activeIngredients: medication.activeIngredients,
-      route: medication.routes[0] || '',
-      packaging: medication.packaging.map(p => p.description)
+      route: medication.routes ? medication.routes[0] || '' : '',
+      packaging: medication.packaging?.map(p => p.description) || []
     };
   }
 

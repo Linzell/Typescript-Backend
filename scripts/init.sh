@@ -13,6 +13,12 @@ echo "Database is ready!"
 echo "Running database migrations..."
 npx prisma migrate deploy
 
+# Seed the database if SEED_DATABASE is set to true
+if [ "$SEED_DATABASE" = "true" ]; then
+    echo "Seeding database..."
+    bun run prisma:seed
+fi
+
 # Start the application
 echo "Starting application..."
 exec bun run dev

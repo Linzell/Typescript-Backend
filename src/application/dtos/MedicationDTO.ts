@@ -15,12 +15,11 @@ export const ActiveIngredientDTO = z.object({
 
 export const MedicationResponseDTO = z.object({
   id: z.string(),
-  brandName: z.string(),
-  genericName: z.string(),
+  brandName: z.string().optional().default(''),
   labelerName: z.string(),
   activeIngredients: z.array(ActiveIngredientDTO),
-  route: z.string(),  // Single route for response
-  packaging: z.array(z.string())  // Array of packaging strings
+  route: z.string().default(''),
+  packaging: z.array(z.string()).default([])
 });
 
 export const PaginatedMedicationResponseDTO = z.object({

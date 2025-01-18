@@ -41,9 +41,10 @@ export const authRoutes = (app: Elysia) => {
         value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60, // 24 hours
-        path: '/'
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 24 * 60 * 60,
+        path: '/',
+        domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
       });
 
       return { message: 'Login successful' };
@@ -71,9 +72,10 @@ export const authRoutes = (app: Elysia) => {
         value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         maxAge: 24 * 60 * 60,
-        path: '/'
+        path: '/',
+        domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
       });
 
       return { message: 'Registration successful' };

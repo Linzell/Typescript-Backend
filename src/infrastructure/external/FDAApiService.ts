@@ -5,27 +5,39 @@ import { IMedicationRepository, MedicationFilters } from '@/domain/repositories/
 
 // Export the schema so we can mock it in tests
 export const fdaResponseSchema = z.object({
-  results: z.array(z.object({
-    product_id: z.string(),
-    brand_name: z.string(),
-    generic_name: z.string(),
-    labeler_name: z.string(),
-    active_ingredients: z.array(z.object({
-      name: z.string(),
-      strength: z.string(),
-    })),
-    route: z.array(z.string()),
-    packaging: z.array(z.object({
-      description: z.string(),
-      marketing_start_date: z.string(),
-      sample: z.boolean(),
-    })),
-  })),
   meta: z.object({
+    disclaimer: z.string(),
+    terms: z.string(),
+    license: z.string(),
+    last_updated: z.string(),
     results: z.object({
+      skip: z.number(),
+      limit: z.number(),
       total: z.number(),
     }),
   }),
+  results: z.array(z.object({
+    product_ndc: z.string(),
+    generic_name: z.string(),
+    labeler_name: z.string(),
+    brand_name: z.string().optional().nullable(),
+    active_ingredients: z.array(z.unknown()),
+    finished: z.boolean(),
+    packaging: z.array(z.unknown()),
+    listing_expiration_date: z.string().optional(),
+    marketing_category: z.string(),
+    dosage_form: z.string(),
+    spl_id: z.string(),
+    product_type: z.string(),
+    marketing_start_date: z.string(),
+    marketing_end_date: z.string().optional(),
+    product_id: z.string(),
+    application_number: z.string().optional(),
+    brand_name_base: z.string().nullable(),
+    route: z.array(z.string()).optional(),
+    pharm_class: z.array(z.string()).optional(),
+    openfda: z.unknown(),
+  })),
 });
 
 /**

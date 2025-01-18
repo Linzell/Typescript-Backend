@@ -98,7 +98,7 @@ const app = new Elysia()
  */
 app.group('/api/v1', app =>
   app
-    .use(createAuthMiddleware)
+    // .use(createAuthMiddleware)
     .use(medicationRoutes)
 );
 
