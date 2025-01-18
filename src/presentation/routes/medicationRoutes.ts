@@ -54,9 +54,10 @@ const medicationRoutes = (app: Elysia) => {
     .get('/', async ({ query }) => {
       const filters = MedicationFilterDTO.parse({
         page: Number(query.page) || 1,
-        limit: Number(query.limit) || 10,
+        limit: Number(query.limit) || 9,
         activeIngredient: query.activeIngredient,
-        route: query.route
+        route: query.route,
+        name: query.name
       });
 
       return medicationController.getMedications(filters)
@@ -75,7 +76,8 @@ const medicationRoutes = (app: Elysia) => {
         page: t.Optional(t.String()),
         limit: t.Optional(t.String()),
         activeIngredient: t.Optional(t.String()),
-        route: t.Optional(t.String())
+        route: t.Optional(t.String()),
+        name: t.Optional(t.String())
       })
     })
 

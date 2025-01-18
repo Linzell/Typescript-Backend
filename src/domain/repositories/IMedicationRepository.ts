@@ -8,12 +8,14 @@ import { Medication } from '@/domain/entities/Medication';
  * @property {string} [route] - Filter by administration route
  * @property {number} page - Page number for pagination
  * @property {number} limit - Number of items per page
+ * @property {string} [name] - Filter by medication name
  */
 export interface MedicationFilters {
   activeIngredient?: string;
   route?: string;
   page: number;
   limit: number;
+  name?: string;
 }
 
 /**

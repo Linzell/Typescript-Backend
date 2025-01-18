@@ -16,7 +16,6 @@ export class MedicationController {
    */
   private mapMedicationToResponse(medication: Medication): MedicationResponse {
     return {
-
       id: medication.id,
       brandName: medication.brandName || '',
       genericName: medication.genericName,
@@ -30,36 +29,49 @@ export class MedicationController {
   /**
    * Retrieves a paginated list of medications
    */
-  async getMedications(filters: MedicationFilter): Promise<PaginatedMedicationResponse> {
+  async getMedications(filters: MedicationFilter): Promise<PaginatedMedicationResponse | { error: string }> {
     const validatedFilters = MedicationFilterDTO.parse(filters);
+
+    if (validatedFilters.route === 'ALL') {
+      delete validatedFilters.route;
+    }
 
     return this.medicationService.getMedications(validatedFilters)
       .then(result => ({
-        medications: result.medications.map(med => this.mapMedicationToResponse(med)),
-        total: result.total,
+        medications: result.medications?.map(med => this.mapMedicationToResponse(med)) || [],
+        total: result.total || 0,
         currentPage: validatedFilters.page,
-        totalPages: Math.ceil(result.total / validatedFilters.limit),
-        hasMore: result.total > validatedFilters.page * validatedFilters.limit
+        totalPages: Math.ceil((result.total || 0) / validatedFilters.limit),
+        hasMore: (result.total || 0) > validatedFilters.page * validatedFilters.limit
       }))
       .catch(error => {
-        throw new Error(`Failed to fetch medications: ${error.message}`);
+        if (error instanceof Error && error.message.includes('Not Found')) {
+          return {
+            medications: [],
+            total: 0,
+            currentPage: filters.page,
+            totalPages: 0,
+            hasMore: false
+          };
+        }
+        return { error: `Failed to fetch medications: ${error instanceof Error ? error.message : 'Unknown error'}` };
       });
   }
 
   /**
    * Retrieves a single medication by ID
    */
-  async getMedicationById(id: string): Promise<MedicationResponse> {
+  async getMedicationById(id: string): Promise<MedicationResponse | { error: string }> {
     return this.medicationService.getMedicationById(id)
       .then(medication => {
         if (!medication) {
-          throw new Error('Medication not found');
+          return { error: 'Medication not found' };
         }
         return this.mapMedicationToResponse(medication);
       })
-      .catch(error => {
-        throw new Error(`Failed to fetch medication: ${error.message}`);
-      });
+      .catch(error => ({
+        error: `Failed to fetch medication: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }));
   }
 
   /**
@@ -72,7 +84,7 @@ export class MedicationController {
     ingredient: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<PaginatedMedicationResponse> {
+  ): Promise<PaginatedMedicationResponse | { error: string }> {
     const query: MedicationFilter = {
       page,
       limit,
@@ -92,11 +104,31 @@ export class MedicationController {
     route: string,
     page: number = 1,
     limit: number = 10
-  ): Promise<PaginatedMedicationResponse> {
+  ): Promise<PaginatedMedicationResponse | { error: string }> {
     const query: MedicationFilter = {
       page,
       limit,
       route
+    };
+
+    return this.getMedications(query);
+  }
+
+  /**
+   * Filters medications by name (brand name or generic name)
+   * @param name - Name to search for
+   * @param page - Page number
+   * @param limit - Items per page
+   */
+  async filterByName(
+    name: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<PaginatedMedicationResponse | { error: string }> {
+    const query: MedicationFilter = {
+      page,
+      limit,
+      name
     };
 
     return this.getMedications(query);

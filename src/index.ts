@@ -15,7 +15,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 // Import routes
 import medicationRoutes from "@/presentation/routes/medicationRoutes";
 import authRoutes from "@/presentation/routes/authRoutes";
-import { createAuthMiddleware } from "@/infrastructure/auth/middleware";
+// import { createAuthMiddleware } from "@/infrastructure/auth/middleware";
 
 import { config } from "@/config";
 

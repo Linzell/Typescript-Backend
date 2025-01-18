@@ -17,7 +17,7 @@ export class Medication {
     public readonly genericName: string,
     public readonly labelerName: string,
     public readonly activeIngredients: ActiveIngredient[],
-    public readonly routes: string[],  // Note: changed from route to routes as it's an array
+    public readonly routes: string[],
     public readonly packaging: Packaging[]
   ) { }
 

@@ -108,6 +108,20 @@ export class MedicationService {
       limit
     });
   }
+  /**
+   * Filters medications by name (brand name or generic name)
+   * @param name - Name to search for
+   * @param page - Page number
+   * @param limit - Items per page
+   * @returns Promise with filtered medications and total count
+   */
+  filterByName(name: string, page: number = 1, limit: number = 10) {
+    return this.getMedications({
+      name,
+      page,
+      limit
+    });
+  }
 }
 
 export class MedicationError extends Error {

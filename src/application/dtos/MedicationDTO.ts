@@ -5,7 +5,8 @@ export const MedicationFilterDTO = z.object({
   page: z.number().min(1),
   limit: z.number().min(1).max(100),
   activeIngredient: z.string().optional(),
-  route: z.string().optional()
+  route: z.string().optional(),
+  name: z.string().optional()
 });
 
 export const ActiveIngredientDTO = z.object({
