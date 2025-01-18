@@ -69,9 +69,22 @@ export class MedicationController {
         }
         return this.mapMedicationToResponse(medication);
       })
-      .catch(error => ({
-        error: `Failed to fetch medication: ${error instanceof Error ? error.message : 'Unknown error'}`
-      }));
+      .catch(error => {
+        if (error instanceof Error && error.message.includes('Not Found')) {
+          return {
+            id: '',
+            brandName: '',
+            genericName: '',
+            labelerName: '',
+            activeIngredients: [],
+            route: '',
+            packaging: []
+          };
+        }
+        return {
+          error: `Failed to fetch medication: ${error instanceof Error ? error.message : 'Unknown error'}`
+        };
+      });
   }
 
   /**

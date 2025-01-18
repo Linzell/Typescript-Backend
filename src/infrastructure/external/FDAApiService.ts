@@ -89,7 +89,14 @@ export class FDAApiService implements IMedicationRepository {
    * @returns {string} Sanitized term
    * @private
    */
-  private sanitizeSearchTerm(term: string): string {
+  private sanitizeSearchTerm(term: string, isProductId: boolean = false): string {
+    if (isProductId) {
+      // For product IDs, only trim and add wildcards
+      const cleanTerm = term.trim();
+      return `*${cleanTerm}*`;
+    }
+
+    // For other terms, apply the normal sanitization
     const cleanTerm = term
       .trim()
       .toLowerCase()
@@ -98,7 +105,6 @@ export class FDAApiService implements IMedicationRepository {
       // Replace multiple spaces with single space
       .replace(/\s+/g, ' ');
 
-    // Return the term with wildcards
     return `*${cleanTerm}*`;
   }
 
@@ -132,32 +138,29 @@ export class FDAApiService implements IMedicationRepository {
    * @throws {Error} When FDA API request fails
    */
   async findMedications(filters: MedicationFilters) {
-    try {
+    return new Promise<{ medications: Medication[], total: number }>((resolve, reject) => {
       const searchQuery = this.translateToFDAQuery(filters);
       const skip = (filters.page - 1) * filters.limit;
       const apiUrl = this.createFDAApiUrl(searchQuery, filters.limit, skip);
 
-      console.log('FDA API Request URL (decoded):', decodeURIComponent(apiUrl)); // For debugging
-
-      const response = await fetch(apiUrl);
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('FDA API Response:', errorBody); // For debugging
-        throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const validated = fdaResponseSchema.parse(data);
-
-      return {
-        medications: validated.results.map(this.mapToMedication),
-        total: validated.meta.results.total,
-      };
-    } catch (error) {
-      console.error('FDA API Error:', error);
-      throw new Error(`Failed to fetch medications: ${error.message}`);
-    }
+      fetch(apiUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const validated = fdaResponseSchema.parse(data);
+          resolve({
+            medications: validated.results.map(this.mapToMedication),
+            total: validated.meta.results.total,
+          });
+        })
+        .catch(error => {
+          reject(new Error(`Failed to fetch medications: ${error.message}`));
+        });
+    });
   }
 
   /**
@@ -167,25 +170,30 @@ export class FDAApiService implements IMedicationRepository {
    * @throws {Error} When FDA API request fails
    */
   async findById(id: string): Promise<Medication | null> {
-    const sanitizedId = this.sanitizeSearchTerm(id);
-    const searchQuery = `product_id:${sanitizedId}`;
+    return new Promise<Medication | null>((resolve, reject) => {
+      const sanitizedId = this.sanitizeSearchTerm(id, true); // Add true for product ID
+      const searchQuery = `product_id:${sanitizedId}`;
+      const apiUrl = this.createFDAApiUrl(searchQuery, 1, 0);
 
-    const apiUrl = this.createFDAApiUrl(searchQuery, 1, 0);
-
-    const response = await fetch(apiUrl);
-
-    if (!response.ok) {
-      throw new Error(`FDA API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const validated = fdaResponseSchema.parse(data);
-
-    if (validated.results.length === 0) {
-      return null;
-    }
-
-    return this.mapToMedication(validated.results[0]);
+      fetch(apiUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`FDA API error: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const validated = fdaResponseSchema.parse(data);
+          if (validated.results.length === 0) {
+            resolve(null);
+          } else {
+            resolve(this.mapToMedication(validated.results[0]));
+          }
+        })
+        .catch(error => {
+          reject(new Error(`FDA API error: ${error.message}`));
+        });
+    });
   }
 
   /**
