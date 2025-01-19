@@ -10,6 +10,7 @@ import { MedicationController } from '@/application/controllers/MedicationContro
 import { MedicationService } from '@/domain/services/MedicationService';
 import { FDAApiService } from '@/infrastructure/external/FDAApiService';
 import { MedicationFilterDTO } from '@/application/dtos/MedicationDTO';
+import { errorResponse } from '../utils/errorResponse';
 
 import { config } from '@/config';
 
@@ -91,7 +92,8 @@ const medicationRoutes = (app: Elysia) => {
               status: 200,
               headers: { 'Content-Type': 'application/json' }
             }
-          ));
+          ))
+          .catch(() => errorResponse('Error fetching medications', 500));
       });
     }, {
       detail: {
@@ -120,7 +122,8 @@ const medicationRoutes = (app: Elysia) => {
               status: 200,
               headers: { 'Content-Type': 'application/json' }
             }
-          ));
+          ))
+          .catch(() => errorResponse('Error fetching medication details', 500));
       });
     }, {
       detail: {

@@ -11,6 +11,7 @@ import {
   RegisterRequestDTO
 } from '@/application/dtos/AuthDTO';
 import { record } from '@elysiajs/opentelemetry';
+import { errorResponse } from '../utils/errorResponse';
 
 import { config } from '@/config';
 
@@ -54,26 +55,37 @@ export const authRoutes = (app: Elysia) => {
     .post('/login', async ({ jwt, body, cookie: { auth } }) => {
       return record('login', async () => {
         const validatedBody = LoginRequestDTO.parse(body);
-        const result = await controller.login(validatedBody);
+        return controller.login(validatedBody)
+          .then(async user => {
 
-        const token = await jwt.sign({
-          userId: result.id,
-          email: result.email,
-          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+            const token = await jwt.sign({
+              userId: user.id,
+              email: user.email,
+              exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+            });
+
+            auth.set({
+              value: token,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+              maxAge: 24 * 60 * 60,
+              path: '/',
+              domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
+            });
+
+            return new Response(
+              JSON.stringify({ message: 'Login successful' }),
+              {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              }
+            );
+          })
+      })
+        .catch(error => {
+          return errorResponse(error.message, 400);
         });
-
-        auth.set({
-          value: token,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-          maxAge: 24 * 60 * 60,
-          path: '/',
-          domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
-        });
-
-        return { message: 'Login successful' };
-      });
     }, {
       detail: {
         tags: ['auth']
@@ -95,25 +107,36 @@ export const authRoutes = (app: Elysia) => {
     .post('/register', async ({ jwt, body, cookie: { auth } }) => {
       return record('register', async () => {
         const validatedBody = RegisterRequestDTO.parse(body);
-        const result = await controller.register(validatedBody);
+        return controller.register(validatedBody)
+          .then(async user => {
 
-        const token = await jwt.sign({
-          userId: result.id,
-          email: result.email,
-          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
-        });
+            const token = await jwt.sign({
+              userId: user.id,
+              email: user.email,
+              exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
+            });
 
-        auth.set({
-          value: token,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-          maxAge: 24 * 60 * 60,
-          path: '/',
-          domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
-        });
+            auth.set({
+              value: token,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+              maxAge: 24 * 60 * 60,
+              path: '/',
+              domain: process.env.NODE_ENV === 'production' ? 'your-domain.com' : undefined
+            });
 
-        return { message: 'Registration successful' };
+            return new Response(
+              JSON.stringify({ message: 'Registration successful' }),
+              {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              }
+            );
+          })
+          .catch(error => {
+            return errorResponse(error.message, 400);
+          });
       });
     }, {
       detail: {

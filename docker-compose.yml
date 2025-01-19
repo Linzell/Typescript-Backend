@@ -15,8 +15,11 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}?schema=public
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - OTEL_SERVICE_NAME=medications-api
     depends_on:
       - db
+      - jaeger
     volumes:
       - .:/app
       - /app/node_modules
@@ -41,8 +44,14 @@ services:
       - "9411:9411"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:16686"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
 
   db:
     image: postgres:15-alpine

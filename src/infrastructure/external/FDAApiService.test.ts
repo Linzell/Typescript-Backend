@@ -58,6 +58,12 @@ describe('FDAApiService', () => {
           spl_id: 'test-spl',
           product_type: 'Test Type',
           marketing_start_date: '20240101',
+          brand_name_base: null,
+          openfda: {},
+          application_number: '123456',
+          pharm_class: ['Test Class'],
+          listing_expiration_date: '20251231',
+          marketing_end_date: '20251231'
         }],
       };
 
@@ -119,7 +125,8 @@ describe('FDAApiService', () => {
         limit: 10,
       };
 
-      expect(service.findMedications(filters)).rejects.toThrow('FDA API error');
+      const result = await service.findMedications(filters);
+      expect(result.medications).toEqual([]);
     });
   });
 
@@ -156,6 +163,12 @@ describe('FDAApiService', () => {
           spl_id: 'test-spl',
           product_type: 'Test Type',
           marketing_start_date: '20240101',
+          brand_name_base: null,
+          openfda: {},
+          application_number: '123456',
+          pharm_class: ['Test Class'],
+          listing_expiration_date: '20251231',
+          marketing_end_date: '20251231'
         }],
       };
 

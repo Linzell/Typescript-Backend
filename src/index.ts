@@ -116,7 +116,7 @@ DatabaseService.connect()
       console.log(`🏥 Health check available at http://localhost:${config.PORT}/health`);
       console.log(`🔐 CORS configured for ${config.FRONTEND_URL}`);
       console.log(`🔒 Protected routes available at http://localhost:${config.PORT}/api/v1`);
-      console.log(`📊 OpenTelemetry configured and jaeger tracing available at http://localhost:16686`);
+      console.log(`📊 OpenTelemetry configured and jaeger tracing available at ${config.OTEL_EXPORTER_OTLP_ENDPOINT}:16686`);
     });
   })
   .catch((error: Error) => {

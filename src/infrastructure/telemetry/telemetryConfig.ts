@@ -9,13 +9,19 @@ import { config } from '@/config';
 export const tracing = new Elysia({ name: 'tracing' })
   .use(opentelemetry({
     spanProcessors: [
-      //@ts-ignore - BatchSpanProcessor types are incorrect (this shouldn't cause problems)
+      // @ts-ignore - BatchSpanProcessor is not elysia OTEL type, but work
       new BatchSpanProcessor(
         new OTLPTraceExporter({
-          url: config.OTEL_EXPORTER_OTLP_ENDPOINT
+          url: config.OTEL_EXPORTER_OTLP_ENDPOINT.replace('4317', '4318') + '/v1/traces', // Use HTTP port
+          headers: {
+            'Content-Type': 'application/json'
+          },
         })
       )
     ],
-    serviceName: config.OTEL_SERVICE_NAME
-  })
-  );
+    serviceName: config.OTEL_SERVICE_NAME,
+    resourceAttributes: {
+      'service.version': '1.0.0',
+      'deployment.environment': 'development'
+    }
+  }));

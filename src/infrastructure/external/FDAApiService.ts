@@ -49,12 +49,24 @@ export const fdaResponseSchema = z.object({
  * @class
  */
 export class FDAApiService implements IMedicationRepository {
+  private static readonly MAX_SKIP_LIMIT = 5000; // FDA API limitation
+  private static readonly MAX_PAGES = Math.floor(FDAApiService.MAX_SKIP_LIMIT / 10); // Assuming default limit is 10
+
   /**
    * Creates an instance of FDAApiService
    * @constructor
    * @param {string} apiKey - API key for FDA API authentication
    */
   constructor(private readonly apiKey: string) { }
+
+  /**
+   * Returns the maximum number of pages for a given limit
+   * @param {number} limit - Results per page
+   * @returns {number} Maximum number of pages
+   */
+  public getMaxPages(limit: number): number {
+    return Math.floor(FDAApiService.MAX_SKIP_LIMIT / limit);
+  }
 
   /**
    * Translates filter parameters to FDA API search syntax
@@ -145,27 +157,52 @@ export class FDAApiService implements IMedicationRepository {
    * @throws {Error} When FDA API request fails
    */
   async findMedications(filters: MedicationFilters) {
-    return new Promise<{ medications: Medication[], total: number }>((resolve, reject) => {
+    return new Promise<{
+      medications: Medication[], total: number,
+      maxPages: number
+    }>((resolve, reject) => {
       const searchQuery = this.translateToFDAQuery(filters);
       const skip = (filters.page - 1) * filters.limit;
+      const maxPages = this.getMaxPages(filters.limit);
+
+      // Check if requested page exceeds max pages
+      if (filters.page > maxPages) {
+        resolve({
+          medications: [],
+          total: FDAApiService.MAX_SKIP_LIMIT,
+          maxPages
+        });
+        return;
+      }
+
       const apiUrl = this.createFDAApiUrl(searchQuery, filters.limit, skip);
 
       fetch(apiUrl)
         .then(response => {
           if (!response.ok) {
+            if (response.status === 400) {
+              return resolve({
+                medications: [],
+                total: FDAApiService.MAX_SKIP_LIMIT,
+                maxPages
+              });
+            }
             throw new Error(`FDA API error: ${response.status} ${response.statusText}`);
           }
           return response.json();
         })
         .then(data => {
           const validated = fdaResponseSchema.parse(data);
+          const total = Math.min(validated.meta.results.total, FDAApiService.MAX_SKIP_LIMIT);
+
           resolve({
             medications: validated.results.map(this.mapToMedication),
-            total: validated.meta.results.total,
+            total,
+            maxPages
           });
         })
         .catch(error => {
-          reject(new Error(`Failed to fetch medications: ${error.message}`));
+          reject(new Error(`FDA API error: ${error.message}`));
         });
     });
   }
